@@ -1,3 +1,4 @@
+from typing import Sequence
 import argparse
 from pathlib import Path
 
@@ -7,9 +8,9 @@ import pandas as pd
 from tqdm import tqdm
 
 import torch
-from torchvision import transforms
 
 from catalyst.contrib.models.cv import ResnetEncoder
+from catalyst.contrib.utils.image import _IMAGENET_MEAN, _IMAGENET_STD
 from catalyst.data import ImageReader
 from catalyst.dl import utils
 
@@ -17,9 +18,63 @@ cv2.setNumThreads(0)
 cv2.ocl.setUseOpenCL(False)
 
 IMG_SIZE = (224, 224)
-IMAGENET_NORM = transforms.Normalize(
-    (0.485, 0.456, 0.406), (0.229, 0.224, 0.225)
-)
+
+
+# <------- taken from torchvision - https://github.com/pytorch/vision ------->
+
+
+def normalize(
+    tensor: torch.Tensor,
+    mean: Sequence[float] = _IMAGENET_MEAN,
+    std: Sequence[float] = _IMAGENET_STD,
+    inplace: bool = False,
+) -> torch.Tensor:
+    """Normalize a tensor image with mean and standard deviation.
+
+    .. note::
+        This transform acts out of place by default, i.e.,
+        it does not mutates the input tensor.
+
+    Args:
+        tensor (torch.Tensor): tensor image of size (C, H, W) to be normalized
+        mean (Sequence[float]): Sequence of means for each channel
+        std (Sequence[float]): Sequence of standard deviations for each channel
+        inplace(bool,optional): bool to make this operation inplace
+
+    Returns:
+        torch.Tensor: normalized Tensor image
+    """
+    if not torch.is_tensor(tensor):
+        raise TypeError(
+            f"tensor should be a torch tensor. Got {type(tensor)}."
+        )
+
+    if tensor.ndimension() != 3:
+        raise ValueError(
+            f"Expected tensor to be a tensor image of size (C, H, W)."
+            f"Got tensor.size() = {tensor.size()}"
+        )
+
+    if not inplace:
+        tensor = tensor.clone()
+
+    dtype = tensor.dtype
+    mean = torch.as_tensor(mean, dtype=dtype, device=tensor.device)
+    std = torch.as_tensor(std, dtype=dtype, device=tensor.device)
+    if (std == 0).any():
+        raise ValueError(
+            f"std evaluated to zero after conversion to {dtype},"
+            f" leading to division by zero."
+        )
+    if mean.ndim == 1:
+        mean = mean[:, None, None]
+    if std.ndim == 1:
+        std = std[:, None, None]
+    tensor.sub_(mean).div_(std)
+    return tensor
+
+
+# <------- taken from torchvision - https://github.com/pytorch/vision ------->
 
 
 def dict_transformer(sample):
@@ -30,7 +85,7 @@ def dict_transformer(sample):
     # image = np.concatenate([np.expand_dims(image, -1)] * 3, axis=-1)
     image = cv2.resize(image, IMG_SIZE, interpolation=cv2.INTER_NEAREST)
     image = torch.from_numpy(image.astype(np.float32) / 255.0).permute(2, 0, 1)
-    image = IMAGENET_NORM(image)
+    image = normalize(image)
 
     sample["image"] = image
     return sample

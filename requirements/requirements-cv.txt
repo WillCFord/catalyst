@@ -1,2 +1,4 @@
+torchvision>=0.2.1
+Pillow<7
 albumentations==0.4.3
 segmentation-models-pytorch==0.1.0
