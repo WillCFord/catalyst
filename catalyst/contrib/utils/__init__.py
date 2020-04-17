@@ -6,6 +6,7 @@ import os
 
 logger = logging.getLogger(__name__)
 
+from catalyst.utils.tools import settings
 from .argparse import boolean_flag
 from .compression import pack, pack_if_needed, unpack, unpack_if_needed
 from .confusion_matrix import (
@@ -14,17 +15,27 @@ from .confusion_matrix import (
     calculate_confusion_matrix_from_tensors,
 )
 from .dataset import create_dataset, split_dataset_train_test, create_dataframe
-from .image import (
-    has_image_extension,
-    imread,
-    imwrite,
-    imsave,
-    mask_to_overlay_image,
-    mimread,
-    mimwrite_with_meta,
-    tensor_from_rgb_image,
-    tensor_to_ndimage,
-)
+
+try:
+    from .image import (
+        has_image_extension,
+        imread,
+        imwrite,
+        imsave,
+        mask_to_overlay_image,
+        mimread,
+        mimwrite_with_meta,
+        tensor_from_rgb_image,
+        tensor_to_ndimage,
+    )
+except ImportError as ex:
+    if settings.USE_CV:
+        logger.exception(
+            "some of catalyst-cv dependencies not available,"
+            " to install dependencies, run `pip install catalyst[cv]`."
+        )
+        raise ex
+
 from .misc import (
     args_are_not_none,
     make_tuple,
@@ -54,10 +65,10 @@ try:
     import transformers  # noqa: F401
     from .text import tokenize_text, process_bert_output
 except ImportError as ex:
-    if os.environ.get("USE_TRANSFORMERS", "0") == "1":
-        logger.warning(
-            "transformers not available, to install transformers,"
-            " run `pip install transformers`."
+    if settings.USE_NLP:
+        logger.exception(
+            "some of catalyst-nlp dependencies not available,"
+            " to install dependencies, run `pip install catalyst[nlp]`."
         )
         raise ex
 

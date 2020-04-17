@@ -2,8 +2,8 @@
 catalyst subpackage registries
 """
 import logging
-import os
 
+from catalyst.utils.tools import settings
 from catalyst.utils.tools.registry import Registry
 
 logger = logging.getLogger(__name__)
@@ -23,8 +23,8 @@ def _transforms_loader(r: Registry):
 
         r.add_from_module(t, prefix=["catalyst.", "C."])
     except ImportError as ex:
-        if os.environ.get("USE_ALBUMENTATIONS", "0") == "1":
-            logger.warning(
+        if settings.USE_ALBUMENTATIONS:
+            logger.exception(
                 "albumentations not available, to install albumentations, "
                 "run `pip install albumentations`."
             )
@@ -95,8 +95,14 @@ def _model_loader(r: Registry):
         import segmentation_models_pytorch as smp
 
         r.add_from_module(smp, prefix="smp.")
-    except ImportError:
-        pass
+    except ImportError as ex:
+        if settings.USE_SEGMENTATION_MODELS:
+            logger.exception(
+                "segmentation-models not available,"
+                " to install segmentation-models,"
+                " run `pip install segmentation-models-pytorch`."
+            )
+            raise ex
 
 
 MODELS = Registry("model")

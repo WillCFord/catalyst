@@ -16,13 +16,6 @@ tensorboard>=1.14.0
 tensorboardX
 crc32c>=1.7
 
-# cv -> cv
-#torchvision>=0.2.1
-#Pillow<7
-imageio
-opencv-python
-scikit-image>=0.14.2
-
 # logs -> contrib
 plotly>=4.1.0
 

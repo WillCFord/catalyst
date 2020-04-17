@@ -73,28 +73,34 @@ Examples:
 from argparse import ArgumentParser, RawTextHelpFormatter
 from collections import OrderedDict
 import logging
-import os
 
 from catalyst.__version__ import __version__
-from catalyst.data.scripts import (
-    image2embedding,
-    process_images,
-    project_embeddings,
-    split_dataframe,
-    tag2label,
-)
+from catalyst.data.scripts import split_dataframe, tag2label
+from catalyst.utils.tools import settings
 
 logger = logging.getLogger(__name__)
 
 COMMANDS = OrderedDict(
-    [
-        ("tag2label", tag2label),
-        ("process-images", process_images),
-        ("split-dataframe", split_dataframe),
-        ("image2embedding", image2embedding),
-        ("project-embeddings", project_embeddings),
-    ]
+    [("tag2label", tag2label), ("split-dataframe", split_dataframe)]
 )
+
+try:
+    from catalyst.data.scripts import (
+        image2embedding,
+        process_images,
+        project_embeddings,
+    )
+
+    COMMANDS["process-images"] = process_images
+    COMMANDS["image2embedding"] = image2embedding
+    COMMANDS["project-embeddings"] = project_embeddings
+except ImportError as ex:
+    if settings.USE_CV:
+        logger.exception(
+            "some of catalyst-cv dependencies not available,"
+            " to install dependencies, run `pip install catalyst[cv]`."
+        )
+        raise ex
 
 try:
     import transformers  # noqa: F401
@@ -102,10 +108,10 @@ try:
 
     COMMANDS["text2embedding"] = text2embedding
 except ImportError as ex:
-    if os.environ.get("USE_TRANSFORMERS", "0") == "1":
-        logger.warning(
-            "transformers not available, to install transformers,"
-            " run `pip install transformers`."
+    if settings.USE_NLP:
+        logger.exception(
+            "some of catalyst-nlp dependencies not available,"
+            " to install dependencies, run `pip install catalyst[nlp]`."
         )
         raise ex
 

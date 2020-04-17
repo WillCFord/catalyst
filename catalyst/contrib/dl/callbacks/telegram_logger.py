@@ -1,11 +1,13 @@
 from typing import List
 import logging
-import os
 from urllib.parse import quote_plus
 from urllib.request import Request, urlopen
 
 from catalyst import utils
 from catalyst.core import Callback, CallbackNode, CallbackOrder, State
+from catalyst.utils.tools import settings
+
+logger = logging.getLogger(__name__)
 
 
 class TelegramLogger(Callback):
@@ -38,11 +40,8 @@ class TelegramLogger(Callback):
             log_on_exception (bool): send notification on exception
         """
         super().__init__(order=CallbackOrder.Logging, node=CallbackNode.Master)
-        # @TODO: replace this logic with global catalyst config at ~/.catalyst
-        self._token = token or os.environ.get("CATALYST_TELEGRAM_TOKEN", None)
-        self._chat_id = chat_id or os.environ.get(
-            "CATALYST_TELEGRAM_CHAT_ID", None
-        )
+        self._token = token or settings.CATALYST_TELEGRAM_TOKEN
+        self._chat_id = chat_id or settings.CATALYST_TELEGRAM_CHAT_ID
         assert self._token is not None and self._chat_id is not None
         self._base_url = (
             f"https://api.telegram.org/bot{self._token}/sendMessage"
@@ -68,7 +67,7 @@ class TelegramLogger(Callback):
             request = Request(url)
             urlopen(request)
         except Exception as e:
-            logging.getLogger(__name__).warning(f"telegram.send.error:{e}")
+            logger.warning(f"telegram.send.error:{e}")
 
     def on_stage_start(self, state: State):
         """Notify about starting a new stage."""

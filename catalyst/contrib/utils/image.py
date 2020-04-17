@@ -10,13 +10,14 @@ from skimage.color import label2rgb, rgb2gray
 
 import torch
 
+from catalyst.utils.tools import settings
+
 _IMAGENET_STD = (0.229, 0.224, 0.225)
 _IMAGENET_MEAN = (0.485, 0.456, 0.406)
 
 logger = logging.getLogger(__name__)
 
-JPEG4PY_ENABLED = False
-if os.environ.get("FORCE_JPEG_TURBO", False):
+if settings.USE_LIBJPEG_TURBO:
     try:
         import jpeg4py as jpeg
 
@@ -25,8 +26,6 @@ if os.environ.get("FORCE_JPEG_TURBO", False):
         with tempfile.NamedTemporaryFile(suffix=".jpg") as fp:
             imageio.imwrite(fp.name, img)
             img = jpeg.JPEG(fp.name).decode()
-
-        JPEG4PY_ENABLED = True
     except ImportError:
         logger.warning(
             "jpeg4py not available. "
@@ -66,7 +65,9 @@ def imread(
         rootpath = str(rootpath)
         uri = uri if uri.startswith(rootpath) else os.path.join(rootpath, uri)
 
-    if JPEG4PY_ENABLED and uri.endswith(("jpg", "JPG", "jpeg", "JPEG")):
+    if settings.USE_LIBJPEG_TURBO and uri.endswith(
+        ("jpg", "JPG", "jpeg", "JPEG")
+    ):
         img = jpeg.JPEG(uri).decode()
     else:
         # @TODO: add tiff support, currently – jpg and png

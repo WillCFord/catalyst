@@ -1,4 +1,7 @@
 torchvision>=0.2.1
-Pillow<7
+# Pillow<7  # only for torchvision
 albumentations==0.4.3
 segmentation-models-pytorch==0.1.0
+imageio
+opencv-python
+scikit-image>=0.14.2
