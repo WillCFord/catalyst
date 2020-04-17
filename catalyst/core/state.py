@@ -3,11 +3,9 @@ from collections import defaultdict, OrderedDict
 from pathlib import Path
 import warnings
 
-import numpy as np
-
 from torch.utils.data import DataLoader
 
-from catalyst import utils
+from catalyst.core import utils
 from catalyst.utils.tools.frozen_class import FrozenClass
 from catalyst.utils.tools.settings import (
     LOADER_VALID_PREFIX,
@@ -245,6 +243,16 @@ class State(FrozenClass):
         - ``True`` for training loaders
         - ``False`` otherwise
 
+    **state.is_valid_loader** - bool, indicator flag
+
+        - ``True`` for validation loaders
+        - ``False`` otherwise
+
+    **state.is_infer_loader** - bool, indicator flag
+
+        - ``True`` for inference loaders
+        - ``False`` otherwise
+
     **state.is_infer_stage** - bool, indicator flag
 
         - ``True`` for inference stages
@@ -276,7 +284,7 @@ class State(FrozenClass):
         callbacks: Dict[str, "Callback"] = None,
         logdir: str = None,
         stage: str = STAGE_INFER_PREFIX,
-        num_epochs: int = None,
+        num_epochs: int = 1,
         main_metric: str = STATE_MAIN_METRIC,
         minimize_metric: bool = True,
         valid_loader: str = LOADER_VALID_PREFIX,
@@ -331,7 +339,7 @@ class State(FrozenClass):
 
         self.stage_name: str = stage
         self.epoch: int = 1
-        self.num_epochs: int = num_epochs or np.iinfo(np.int32).max
+        self.num_epochs: int = num_epochs
 
         self.loader_name: str = None
         self.loader_step: int = 0
@@ -355,6 +363,8 @@ class State(FrozenClass):
         # other
         self.is_check_run: bool = is_check_run
         self.is_train_loader: bool = False
+        self.is_valid_loader: bool = False
+        self.is_infer_loader: bool = False
         self.is_infer_stage: bool = self.stage_name.startswith(
             STAGE_INFER_PREFIX
         )

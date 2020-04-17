@@ -4,8 +4,9 @@ import pathlib
 from prompt_toolkit import prompt
 import yaml
 
-from catalyst.contrib.utils.pipelines import URLS
-from catalyst.dl import registry, utils
+from catalyst.dl import registry
+from catalyst.utils import clone_pipeline, import_module
+from catalyst.utils.pipelines import URLS
 
 yaml.add_representer(
     OrderedDict,
@@ -16,7 +17,8 @@ yaml.add_representer(
 
 
 class Wizard:
-    """Class for Catalyst Config API Wizard.
+    """
+    Class for Catalyst Config API Wizard.
 
     The instance of this class will be created and called from cli command:
     ``catalyst-dl init --interactive``.
@@ -332,7 +334,7 @@ class Wizard:
             expdir = self._cfg["args"]["expdir"]
             if not isinstance(expdir, pathlib.Path):
                 expdir = pathlib.Path(expdir)
-            utils.import_module(expdir)
+            import_module(expdir)
             self.__res(f"Modules from {expdir} exported")
         except OSError:
             print(f"There is no modules to import found: {expdir}")
@@ -395,7 +397,7 @@ class Wizard:
             default="./",
         )
         self.pipeline_path = pathlib.Path(out_dir)
-        utils.clone_pipeline(pipeline.lower(), self.pipeline_path)
+        clone_pipeline(pipeline.lower(), self.pipeline_path)
         self.__res(f"{pipeline} cloned to {self.pipeline_path}")
 
     def run(self):
@@ -421,3 +423,6 @@ def run_wizard():
     """Method to initialize and run wizard."""
     wiz = Wizard()
     wiz.run()
+
+
+__all__ = ["run_wizard", "Wizard"]

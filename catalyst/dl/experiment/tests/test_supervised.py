@@ -48,17 +48,16 @@ def test_defaults():
 
     test_callbacks = OrderedDict(
         [
-            ("_timer", TimerCallback),
             ("_metrics", MetricManagerCallback),
             ("_validation", ValidationManagerCallback),
-            ("_saver", CheckpointCallback),
             ("_console", ConsoleLogger),
-            ("_tensorboard", TensorboardLogger),
             ("_exception", ExceptionCallback),
         ]
     )
 
-    exp = SupervisedExperiment(model=model, loaders=loaders)
+    exp = SupervisedExperiment(
+        model=model, loaders=loaders, valid_loader="train",
+    )
     _test_callbacks(test_callbacks, exp)
 
 
@@ -67,7 +66,6 @@ def test_defaults_verbose():
     test_callbacks = OrderedDict(
         [
             ("_verbose", VerboseLogger),
-            ("_timer", TimerCallback),
             ("_metrics", MetricManagerCallback),
             ("_validation", ValidationManagerCallback),
             ("_saver", CheckpointCallback),
@@ -83,7 +81,13 @@ def test_defaults_verbose():
     loaders = OrderedDict()
     loaders["train"] = dataloader
 
-    exp = SupervisedExperiment(model=model, loaders=loaders, verbose=True)
+    exp = SupervisedExperiment(
+        model=model,
+        loaders=loaders,
+        verbose=True,
+        valid_loader="train",
+        logdir="./logs",
+    )
     _test_callbacks(test_callbacks, exp)
 
 
@@ -92,7 +96,6 @@ def test_defaults_check():
     test_callbacks = OrderedDict(
         [
             ("_check", CheckRunCallback),
-            ("_timer", TimerCallback),
             ("_metrics", MetricManagerCallback),
             ("_validation", ValidationManagerCallback),
             ("_saver", CheckpointCallback),
@@ -108,7 +111,13 @@ def test_defaults_check():
     loaders = OrderedDict()
     loaders["train"] = dataloader
 
-    exp = SupervisedExperiment(model=model, loaders=loaders, check_run=True)
+    exp = SupervisedExperiment(
+        model=model,
+        loaders=loaders,
+        check_run=True,
+        valid_loader="train",
+        logdir="./logs",
+    )
     _test_callbacks(test_callbacks, exp)
 
 
@@ -116,7 +125,6 @@ def test_criterion():
     """@TODO: Docs. Contribution is welcome."""
     test_callbacks = OrderedDict(
         [
-            ("_timer", TimerCallback),
             ("_metrics", MetricManagerCallback),
             ("_validation", ValidationManagerCallback),
             ("_saver", CheckpointCallback),
@@ -142,6 +150,8 @@ def test_criterion():
         criterion=criterion,
         optimizer=optimizer,
         scheduler=scheduler,
+        valid_loader="train",
+        logdir="./logs",
     )
     _test_callbacks(test_callbacks, exp)
 
@@ -150,7 +160,6 @@ def test_optimizer():
     """@TODO: Docs. Contribution is welcome."""
     test_callbacks = OrderedDict(
         [
-            ("_timer", TimerCallback),
             ("_metrics", MetricManagerCallback),
             ("_validation", ValidationManagerCallback),
             ("_saver", CheckpointCallback),
@@ -176,6 +185,8 @@ def test_optimizer():
         criterion=criterion,
         optimizer=optimizer,
         scheduler=scheduler,
+        valid_loader="train",
+        logdir="./logs",
     )
     _test_callbacks(test_callbacks, exp)
 
@@ -184,10 +195,10 @@ def test_scheduler():
     """@TODO: Docs. Contribution is welcome."""
     test_callbacks = OrderedDict(
         [
-            ("_timer", TimerCallback),
             ("_metrics", MetricManagerCallback),
             ("_validation", ValidationManagerCallback),
             ("_saver", CheckpointCallback),
+            ("_timer", TimerCallback),
             ("_console", ConsoleLogger),
             ("_tensorboard", TensorboardLogger),
             ("_exception", ExceptionCallback),
@@ -205,7 +216,13 @@ def test_scheduler():
     loaders["train"] = dataloader
 
     exp = SupervisedExperiment(
-        model=model, loaders=loaders, optimizer=optimizer, scheduler=scheduler,
+        model=model,
+        loaders=loaders,
+        optimizer=optimizer,
+        scheduler=scheduler,
+        valid_loader="train",
+        logdir="./logs",
+        check_time=True,
     )
     _test_callbacks(test_callbacks, exp)
 
@@ -216,12 +233,9 @@ def test_all():
         [
             ("_verbose", VerboseLogger),
             ("_check", CheckRunCallback),
-            ("_timer", TimerCallback),
             ("_metrics", MetricManagerCallback),
             ("_validation", ValidationManagerCallback),
-            ("_saver", CheckpointCallback),
             ("_console", ConsoleLogger),
-            ("_tensorboard", TensorboardLogger),
             ("_exception", ExceptionCallback),
             ("_criterion", CriterionCallback),
             ("_optimizer", OptimizerCallback),
@@ -246,6 +260,7 @@ def test_all():
         scheduler=scheduler,
         verbose=True,
         check_run=True,
+        valid_loader="train",
     )
     _test_callbacks(test_callbacks, exp)
 
@@ -269,6 +284,7 @@ def test_infer_defaults():
         criterion=criterion,
         optimizer=optimizer,
         scheduler=scheduler,
+        stage="infer",
     )
     _test_callbacks(test_callbacks, exp, "infer")
 
@@ -300,5 +316,6 @@ def test_infer_all():
         scheduler=scheduler,
         verbose=True,
         check_run=True,
+        stage="infer",
     )
     _test_callbacks(test_callbacks, exp, "infer")

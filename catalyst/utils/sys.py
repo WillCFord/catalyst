@@ -6,9 +6,12 @@ import platform
 import shutil
 import subprocess
 import sys
+import warnings
 
-from catalyst import utils
-from catalyst.utils.tools.tensorboard import SummaryWriter
+from catalyst.contrib.utils.tools.tensorboard import SummaryWriter
+
+from .config import save_config
+from .misc import get_utcnow_time
 
 
 def _decode_dict(dictionary: Dict[str, Union[bytes, str]]) -> Dict[str, str]:
@@ -36,7 +39,7 @@ def get_environment_vars() -> Dict[str, Any]:
     result = {
         "python_version": sys.version,
         "conda_environment": os.environ.get("CONDA_DEFAULT_ENV", ""),
-        "creation_time": utils.get_utcnow_time(),
+        "creation_time": get_utcnow_time(),
         "sysname": platform.uname()[0],
         "nodename": platform.uname()[1],
         "release": platform.uname()[2],
@@ -91,10 +94,17 @@ def list_pip_packages() -> str:
                 .strip()
                 .decode("UTF-8")
             )
-        except FileNotFoundError:
+        except Exception as e:
+            warnings.warn(
+                f"Failed to freeze pip packages. "
+                f"Pip Output: ```{e.output}```."
+                f"Continue experiment without pip packages dumping."
+            )
             pass
-        except subprocess.CalledProcessError as e:
-            raise Exception("Failed to list packages") from e
+        # except FileNotFoundError:
+        #     pass
+        # except subprocess.CalledProcessError as e:
+        #     raise Exception("Failed to list packages") from e
 
     return result
 
@@ -116,14 +126,22 @@ def list_conda_packages() -> str:
                     .strip()
                     .decode("UTF-8")
                 )
-            except FileNotFoundError:
-                pass
-            except subprocess.CalledProcessError as e:
-                raise Exception(
+            except Exception as e:
+                warnings.warn(
                     f"Running from conda env, "
                     f"but failed to list conda packages. "
-                    f"Conda Output: {e.output}"
-                ) from e
+                    f"Conda Output: ```{e.output}```."
+                    f"Continue experiment without conda packages dumping."
+                )
+                pass
+            # except FileNotFoundError:
+            #     pass
+            # except subprocess.CalledProcessError as e:
+            #     raise Exception(
+            #         f"Running from conda env, "
+            #         f"but failed to list conda packages. "
+            #         f"Conda Output: {e.output}"
+            #     ) from e
     return result
 
 
@@ -147,8 +165,8 @@ def dump_environment(
 
     environment = get_environment_vars()
 
-    utils.save_config(experiment_config, config_dir / "_config.json")
-    utils.save_config(environment, config_dir / "_environment.json")
+    save_config(experiment_config, config_dir / "_config.json")
+    save_config(environment, config_dir / "_environment.json")
 
     pip_pkg = list_pip_packages()
     (config_dir / "pip-packages.txt").write_text(pip_pkg)

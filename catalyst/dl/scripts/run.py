@@ -6,7 +6,8 @@ import os
 from pathlib import Path
 
 from catalyst.dl import utils
-from catalyst.utils import distributed_run, get_rank
+from catalyst.dl.registry import EXPERIMENTS
+from catalyst.utils import distributed_cmd_run, get_rank
 
 
 def build_args(parser: ArgumentParser):
@@ -67,9 +68,10 @@ def build_args(parser: ArgumentParser):
         "distributed",
         shorthand="ddp",
         default=os.getenv("USE_DDP", "0") == "1",
-        help="Run inn distributed mode",
+        help="Run in distributed mode",
     )
     utils.boolean_flag(parser, "verbose", default=None)
+    utils.boolean_flag(parser, "timeit", default=None)
     utils.boolean_flag(parser, "check", default=None)
     utils.boolean_flag(
         parser,
@@ -101,6 +103,10 @@ def main_worker(args, unknown_args):
     config.setdefault("distributed_params", {})["apex"] = args.apex
 
     Experiment, Runner = utils.import_experiment_and_runner(Path(args.expdir))
+    if Experiment is None:
+        experiment_params = config.get("experiment_params", {})
+        experiment = experiment_params.get("experiment", "Experiment")
+        Experiment = EXPERIMENTS.get(experiment)
 
     runner_params = config.get("runner_params", {})
     experiment = Experiment(config)
@@ -115,7 +121,7 @@ def main_worker(args, unknown_args):
 
 def main(args, unknown_args):
     """Run the ``catalyst-dl run`` script."""
-    distributed_run(args.distributed, main_worker, args, unknown_args)
+    distributed_cmd_run(main_worker, args.distributed, args, unknown_args)
 
 
 if __name__ == "__main__":
