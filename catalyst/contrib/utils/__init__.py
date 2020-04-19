@@ -28,8 +28,8 @@ try:
         tensor_from_rgb_image,
         tensor_to_ndimage,
     )
-except ImportError as ex:
-    if settings.USE_CV:
+except (ModuleNotFoundError, ImportError) as ex:
+    if settings.cv_required:
         logger.exception(
             "some of catalyst-cv dependencies not available,"
             " to install dependencies, run `pip install catalyst[cv]`."
@@ -64,8 +64,8 @@ from .serialization import deserialize, serialize
 try:
     import transformers  # noqa: F401
     from .text import tokenize_text, process_bert_output
-except ImportError as ex:
-    if settings.USE_NLP:
+except (ModuleNotFoundError, ImportError) as ex:
+    if settings.nlp_required:
         logger.exception(
             "some of catalyst-nlp dependencies not available,"
             " to install dependencies, run `pip install catalyst[nlp]`."

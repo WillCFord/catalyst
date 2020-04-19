@@ -19,7 +19,7 @@ from catalyst.dl import (
     ValidationManagerCallback,
     VerboseLogger,
 )
-from catalyst.utils.tools.settings import STAGE_TRAIN_PREFIX
+from catalyst.utils.tools import settings
 from catalyst.utils.tools.typing import Criterion, Model, Optimizer, Scheduler
 
 
@@ -186,7 +186,7 @@ class Experiment(StageBasedExperiment):
             self._loaders = utils.get_loaders_from_params(
                 initial_seed=self.initial_seed, **self._datasets,
             )
-        if self._stage.startswith(STAGE_TRAIN_PREFIX):
+        if self._stage.startswith(settings.stage_train_prefix):
             if len(self._loaders) == 1:
                 self._valid_loader = list(self._loaders.keys())[0]
                 warnings.warn(

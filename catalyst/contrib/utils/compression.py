@@ -12,8 +12,8 @@ logger = logging.getLogger(__name__)
 
 try:
     import lz4.frame
-except ImportError as ex:
-    if settings.USE_LZ4:
+except (ModuleNotFoundError, ImportError) as ex:
+    if settings.use_lz4:
         logger.exception(
             "lz4 not available, disabling compression,"
             " to install lz4, run `pip install lz4`."
@@ -28,7 +28,7 @@ def is_compressed(data):
 
 def compress(data):
     """@TODO: Docs. Contribution is welcome."""
-    if settings.USE_LZ4:
+    if settings.use_lz4:
         data = serialize(data)
         data = lz4.frame.compress(data)
         data = base64.b64encode(data).decode("ascii")
@@ -44,7 +44,7 @@ def compress_if_needed(data):
 
 def decompress(data):
     """@TODO: Docs. Contribution is welcome."""
-    if settings.USE_LZ4:
+    if settings.use_lz4:
         data = base64.b64decode(data)
         data = lz4.frame.decompress(data)
         data = deserialize(data)
@@ -58,7 +58,7 @@ def decompress_if_needed(data):
     return data
 
 
-if settings.USE_LZ4:
+if settings.use_lz4:
     pack = compress
     pack_if_needed = compress_if_needed
     unpack = decompress

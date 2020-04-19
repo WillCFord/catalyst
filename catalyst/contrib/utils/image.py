@@ -17,7 +17,7 @@ _IMAGENET_MEAN = (0.485, 0.456, 0.406)
 
 logger = logging.getLogger(__name__)
 
-if settings.USE_LIBJPEG_TURBO:
+if settings.use_libjpeg_turbo:
     try:
         import jpeg4py as jpeg
 
@@ -26,7 +26,7 @@ if settings.USE_LIBJPEG_TURBO:
         with tempfile.NamedTemporaryFile(suffix=".jpg") as fp:
             imageio.imwrite(fp.name, img)
             img = jpeg.JPEG(fp.name).decode()
-    except ImportError:
+    except (ModuleNotFoundError, ImportError):
         logger.warning(
             "jpeg4py not available. "
             "To install jpeg4py, run `pip install jpeg4py`."
@@ -65,7 +65,7 @@ def imread(
         rootpath = str(rootpath)
         uri = uri if uri.startswith(rootpath) else os.path.join(rootpath, uri)
 
-    if settings.USE_LIBJPEG_TURBO and uri.endswith(
+    if settings.use_libjpeg_turbo and uri.endswith(
         ("jpg", "JPG", "jpeg", "JPEG")
     ):
         img = jpeg.JPEG(uri).decode()

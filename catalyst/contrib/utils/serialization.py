@@ -7,8 +7,8 @@ logger = logging.getLogger(__name__)
 
 try:
     import pyarrow
-except ImportError as ex:
-    if settings.USE_PYARROW:
+except (ModuleNotFoundError, ImportError) as ex:
+    if settings.use_pyarrow:
         logger.exception(
             "pyarrow not available, switching to pickle."
             " to install pyarrow, run `pip install pyarrow`."
@@ -64,7 +64,7 @@ def pickle_deserialize(data):
     return pickle.loads(data)
 
 
-if settings.USE_PYARROW:
+if settings.use_pyarrow:
     serialize = pyarrow_serialize
     deserialize = pyarrow_deserialize
 else:

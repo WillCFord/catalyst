@@ -40,8 +40,8 @@ class TelegramLogger(Callback):
             log_on_exception (bool): send notification on exception
         """
         super().__init__(order=CallbackOrder.Logging, node=CallbackNode.Master)
-        self._token = token or settings.CATALYST_TELEGRAM_TOKEN
-        self._chat_id = chat_id or settings.CATALYST_TELEGRAM_CHAT_ID
+        self._token = token or settings.telegram_logger_token
+        self._chat_id = chat_id or settings.telegram_logger_chat_id
         assert self._token is not None and self._chat_id is not None
         self._base_url = (
             f"https://api.telegram.org/bot{self._token}/sendMessage"

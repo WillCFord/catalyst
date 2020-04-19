@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 try:
     import alchemy
     from .alchemy import AlchemyLogger
-except ImportError as ex:
-    if settings.USE_ALCHEMY:
+except (ModuleNotFoundError, ImportError) as ex:
+    if settings.alchemy_logger_required:
         logger.exception(
             "alchemy not available, to install alchemy,"
             " run `pip install alchemy`."
@@ -26,8 +26,8 @@ except ImportError as ex:
 try:
     import neptune
     from .neptune import NeptuneLogger
-except ImportError as ex:
-    if settings.USE_NEPTUNE:
+except (ModuleNotFoundError, ImportError) as ex:
+    if settings.neptune_logger_required:
         logger.exception(
             "neptune not available, to install neptune,"
             " run `pip install neptune-client`."
@@ -37,8 +37,8 @@ except ImportError as ex:
 try:
     import wandb
     from .wandb import WandbLogger
-except ImportError as ex:
-    if settings.USE_WANDB:
+except (ModuleNotFoundError, ImportError) as ex:
+    if settings.wandb_logger_required:
         logger.exception(
             "wandb not available, to install wandb,"
             " run `pip install wandb`."

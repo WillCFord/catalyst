@@ -7,8 +7,8 @@ class CheckRunCallback(Callback):
 
     def __init__(
         self,
-        num_batch_steps: int = settings.CHECK_RUN_NUM_BATCH_STEPS,
-        num_epoch_steps: int = settings.CHECK_RUN_NUM_EPOCH_STEPS,
+        num_batch_steps: int = settings.check_run_num_batch_steps,
+        num_epoch_steps: int = settings.check_run_num_epoch_steps,
     ):
         """@TODO: Docs. Contribution is welcome."""
         super().__init__(order=CallbackOrder.External, node=CallbackNode.All)

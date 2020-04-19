@@ -1,50 +1,278 @@
-from catalyst.utils.settings import ConfigFileFinder, MergedConfigParser
+from typing import Any, Dict, List, Tuple, Optional
+import configparser
+import logging
+import os
 
-_SETTINGS = MergedConfigParser(ConfigFileFinder("catalyst")).parse()
+from catalyst.utils.tools.frozen_class import FrozenClass
 
-# [catalyst]
-USE_CONTRIB = _SETTINGS.get("load_catalyst_contrib", False)
-USE_CV = _SETTINGS.get("load_catalyst_cv", False)
-USE_ML = _SETTINGS.get("load_catalyst_ml", False)
-USE_NLP = _SETTINGS.get("load_catalyst_nlp", False)
+logger = logging.getLogger(__name__)
 
-STATE_MAIN_METRIC = _SETTINGS.get("state_main_metric", "loss")
 
-# stages
-STAGE_TRAIN_PREFIX = _SETTINGS.get("stage_train_prefix", "train")
-STAGE_VALID_PREFIX = _SETTINGS.get("stage_valid_prefix", "valid")
-STAGE_INFER_PREFIX = _SETTINGS.get("stage_infer_prefix", "infer")
+class Settings(FrozenClass):
+    def __init__(
+        self,
+        contrib_required: bool = False,
+        cv_required: bool = False,
+        ml_required: bool = False,
+        nlp_required: bool = False,
+        state_main_metric: str = "loss",
+        stage_train_prefix: str = "train",
+        stage_valid_prefix: str = "valid",
+        stage_infer_prefix: str = "infer",
+        loader_train_prefix: str = "train",
+        loader_valid_prefix: str = "valid",
+        loader_infer_prefix: str = "infer",
+        check_run_num_batch_steps: int = 2,
+        check_run_num_epoch_steps: int = 2,
+        alchemy_logger_required: Optional[bool] = None,
+        neptune_logger_required: Optional[bool] = None,
+        wandb_logger_required: Optional[bool] = None,
+        telegram_logger_token: str = "",
+        telegram_logger_chat_id: str = "",
+        use_lz4: bool = False,
+        use_pyarrow: bool = False,
+        albumentations_required: Optional[bool] = None,
+        segmentation_models_required: Optional[bool] = None,
+        use_libjpeg_turbo: bool = False,
+        nmslib_required: Optional[bool] = None,
+        transformers_required: Optional[bool] = None,
+    ):
+        # [catalyst]
+        self.contrib_required: bool = contrib_required
+        self.cv_required: bool = cv_required
+        self.ml_required: bool = ml_required
+        self.nlp_required: bool = nlp_required
 
-# loader
-LOADER_TRAIN_PREFIX = _SETTINGS.get("loader_train_prefix", "train")
-LOADER_VALID_PREFIX = _SETTINGS.get("loader_valid_prefix", "valid")
-LOADER_INFER_PREFIX = _SETTINGS.get("loader_infer_prefix", "infer")
+        self.state_main_metric: str = state_main_metric  # @TODO: remove
 
-# callbacks
-CHECK_RUN_NUM_BATCH_STEPS = _SETTINGS.get("check_run_num_batch_steps", 2)
-CHECK_RUN_NUM_EPOCH_STEPS = _SETTINGS.get("check_run_num_epoch_steps", 2)
+        # stages
+        self.stage_train_prefix: str = stage_train_prefix  # @TODO: remove
+        self.stage_valid_prefix: str = stage_valid_prefix  # @TODO: remove
+        self.stage_infer_prefix: str = stage_infer_prefix  # @TODO: remove
 
-# other
-# @TODO: check if catalyst env variables
-# USE_DDP = _SETTINGS.get("use_ddp", False)
-# USE_APEX = _SETTINGS.get("use_apex", False)
+        # loader
+        self.loader_train_prefix: str = loader_train_prefix  # @TODO: remove
+        self.loader_valid_prefix: str = loader_valid_prefix  # @TODO: remove
+        self.loader_infer_prefix: str = loader_infer_prefix  # @TODO: remove
 
-# [catalyst-contrib]
-USE_ALCHEMY = _SETTINGS.get("load_alchemy_logger", USE_CONTRIB)
-USE_NEPTUNE = _SETTINGS.get("load_neptune_logger", USE_CONTRIB)
-USE_WANDB = _SETTINGS.get("load_wandb_logger", USE_CONTRIB)
-CATALYST_TELEGRAM_TOKEN = _SETTINGS.get("telegram_logger_token", None)
-CATALYST_TELEGRAM_CHAT_ID = _SETTINGS.get("telegram_logger_chat_id", None)
-USE_LZ4 = _SETTINGS.get("load_lz4", USE_CONTRIB)
-USE_PYARROW = _SETTINGS.get("load_pyarrow", USE_CONTRIB)
+        # callbacks
+        self.check_run_num_batch_steps: int = check_run_num_batch_steps  # noqa: E501, @TODO: remove
+        self.check_run_num_epoch_steps: int = check_run_num_epoch_steps  # noqa: E501, @TODO: remove
 
-# [catalyst-cv]
-USE_ALBUMENTATIONS = _SETTINGS.get("load_albumentations", USE_CV)
-USE_SEGMENTATION_MODELS = _SETTINGS.get("load_segmentation_models", USE_CV)
-USE_LIBJPEG_TURBO = _SETTINGS.get("load_libjpeg_turbo", False)
+        # [catalyst-contrib]
+        self.alchemy_logger_required: bool = self._optional_value(
+            alchemy_logger_required, default=contrib_required
+        )
+        self.neptune_logger_required: bool = self._optional_value(
+            neptune_logger_required, default=contrib_required
+        )
+        self.wandb_logger_required: bool = self._optional_value(
+            wandb_logger_required, default=contrib_required
+        )
+        self.telegram_logger_token: str = telegram_logger_token
+        self.telegram_logger_chat_id: str = telegram_logger_chat_id
+        self.use_lz4: bool = use_lz4
+        self.use_pyarrow: bool = use_pyarrow
 
-# [catalyst-ml]
-USE_NMSLIB = _SETTINGS.get("load_nmslib", USE_ML)
+        # [catalyst-cv]
+        self.albumentations_required: bool = self._optional_value(
+            albumentations_required, default=cv_required
+        )
+        self.segmentation_models_required: bool = self._optional_value(
+            segmentation_models_required, default=cv_required
+        )
+        self.use_libjpeg_turbo: bool = use_libjpeg_turbo
 
-# [catalyst-nlp]
-USE_TRANSFORMERS = _SETTINGS.get("load_transformers", USE_NLP)
+        # [catalyst-ml]
+        self.nmslib_required: bool = self._optional_value(
+            segmentation_models_required, default=ml_required
+        )
+
+        # [catalyst-nlp]
+        self.transformers_required: bool = self._optional_value(
+            segmentation_models_required, default=nlp_required
+        )
+
+    @staticmethod
+    def _optional_value(value, default):
+        return value if value is not None else default
+
+    def type_hint(self, key: str):
+        # return get_type_hints(self).get(key, None)
+        return type(getattr(self, key, None))
+
+    @staticmethod
+    def parse() -> "Settings":
+        kwargrs = MergedConfigParser(ConfigFileFinder("catalyst")).parse()
+        print(f"+++++{kwargrs}")
+        return Settings(**kwargrs)
+
+
+default_settings = Settings()
+
+
+class ConfigFileFinder:
+    """Encapsulate the logic for finding and reading config files."""
+
+    def __init__(self, program_name: str) -> None:
+        """Initialize object to find config files.
+
+        Args:
+            program_name (str): Name of the current program (e.g., catalyst).
+        """
+        # user configuration file
+        self.program_name = program_name
+        self.user_config_file = self._user_config_file(program_name)
+
+        # list of filenames to find in the local/project directory
+        self.project_filenames = ("setup.cfg", "tox.ini", f".{program_name}")
+
+        self.local_directory = os.path.abspath(os.curdir)
+
+    @staticmethod
+    def _user_config_file(program_name: str) -> str:
+        if os.name == "nt":  # if running on Windows
+            home_dir = os.path.expanduser("~")
+            config_file_basename = f".{program_name}"
+        else:
+            home_dir = os.environ.get(
+                "XDG_CONFIG_HOME", os.path.expanduser("~/.config")
+            )
+            config_file_basename = program_name
+
+        return os.path.join(home_dir, config_file_basename)
+
+    @staticmethod
+    def _read_config(
+        *files: str,
+    ) -> Tuple[configparser.RawConfigParser, List[str]]:
+        config = configparser.RawConfigParser()
+
+        found_files: List[str] = []
+        for filename in files:
+            try:
+                found_files.extend(config.read(filename))
+            except UnicodeDecodeError:
+                logger.exception(
+                    f"There was an error decoding a config file."
+                    f" The file with a problem was {filename}."
+                )
+            except configparser.ParsingError:
+                logger.exception(
+                    f"There was an error trying to parse a config file."
+                    f" The file with a problem was {filename}."
+                )
+
+        return config, found_files
+
+    def local_config_files(self) -> List[str]:
+        """Find all local config files which actually exist.
+
+        Returns:
+            List[str]: List of files that exist that are
+                local project config  files with extra config files
+                appended to that list (which also exist).
+        """
+
+        def generate_possible_local_files():
+            """Find and generate all local config files."""
+            parent = tail = os.getcwd()
+            found_config_files = False
+            while tail and not found_config_files:
+                for project_filename in self.project_filenames:
+                    filename = os.path.abspath(
+                        os.path.join(parent, project_filename)
+                    )
+                    if os.path.exists(filename):
+                        yield filename
+                        found_config_files = True
+                        self.local_directory = parent
+                (parent, tail) = os.path.split(parent)
+
+        return list(generate_possible_local_files())
+
+    def local_configs(self):
+        """Parse all local config files into one config object."""
+        config, found_files = self._read_config(*self.local_config_files())
+        if found_files:
+            logger.debug(f"Found local configuration files: {found_files}")
+        return config
+
+    def user_config(self):
+        """Parse the user config file into a config object."""
+        config, found_files = self._read_config(self.user_config_file)
+        if found_files:
+            logger.debug(f"Found user configuration files: {found_files}")
+        return config
+
+
+class MergedConfigParser:
+    """Encapsulate merging different types of configuration files.
+
+    This parses out the options registered that were specified in the
+    configuration files, handles extra configuration files, and returns
+    dictionaries with the parsed values.
+    """
+
+    #: Set of actions that should use the
+    #: :meth:`~configparser.RawConfigParser.getbool` method.
+    GETBOOL_ACTIONS = {"store_true", "store_false"}
+
+    def __init__(self, config_finder: ConfigFileFinder):
+        """Initialize the MergedConfigParser instance.
+
+        Args:
+            config_finder (ConfigFileFinder): Initialized ConfigFileFinder.
+        """
+        self.program_name = config_finder.program_name
+        self.config_finder = config_finder
+
+    def _normalize_value(self, option, value):
+        final_value = option.normalize(
+            value, self.config_finder.local_directory
+        )
+        logger.debug(
+            f"{value} has been normalized to {final_value}"
+            f" for option '{option.config_name}'",
+        )
+        return final_value
+
+    def _parse_config(self, config_parser):
+        type2method = {
+            bool: config_parser.getboolean,
+            int: config_parser.getint,
+        }
+
+        config_dict: Dict[str, Any] = {}
+        if config_parser.has_section(self.program_name):
+            for option_name in config_parser.options(self.program_name):
+                type_ = default_settings.type_hint(option_name)
+                method = type2method.get(type_, config_parser.get)
+                config_dict[option_name] = method(
+                    self.program_name, option_name
+                )
+
+        return config_dict
+
+    def parse(self) -> dict:
+        """Parse and return the local and user config files.
+
+        First this copies over the parsed local configuration and then
+        iterates over the options in the user configuration and sets them if
+        they were not set by the local configuration file.
+
+        Returns:
+            dict: Dictionary of the parsed and merged configuration options.
+        """
+        user_config = self._parse_config(self.config_finder.user_config())
+        config = self._parse_config(self.config_finder.local_configs())
+
+        for option, value in user_config.items():
+            config.setdefault(option, value)
+
+        return config
+
+
+settings = Settings.parse()
+
+__all__ = ["settings"]
