@@ -44,3 +44,15 @@ except (ModuleNotFoundError, ImportError) as ex:
             " run `pip install wandb`."
         )
         raise ex
+
+try:
+    import imageio
+    import skimage.color
+    from .cv.inference import InferMaskCallback
+except (ModuleNotFoundError, ImportError) as ex:
+    if settings.cv_required:
+        logger.exception(
+            "some of catalyst-cv dependencies not available,"
+            " to install dependencies, run `pip install catalyst[cv]`."
+        )
+        raise ex

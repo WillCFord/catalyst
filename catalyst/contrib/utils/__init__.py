@@ -15,27 +15,6 @@ from .confusion_matrix import (
     calculate_confusion_matrix_from_tensors,
 )
 from .dataset import create_dataset, split_dataset_train_test, create_dataframe
-
-try:
-    from .image import (
-        has_image_extension,
-        imread,
-        imwrite,
-        imsave,
-        mask_to_overlay_image,
-        mimread,
-        mimwrite_with_meta,
-        tensor_from_rgb_image,
-        tensor_to_ndimage,
-    )
-except (ModuleNotFoundError, ImportError) as ex:
-    if settings.cv_required:
-        logger.exception(
-            "some of catalyst-cv dependencies not available,"
-            " to install dependencies, run `pip install catalyst[cv]`."
-        )
-        raise ex
-
 from .misc import (
     args_are_not_none,
     make_tuple,
@@ -60,6 +39,26 @@ from .pandas import (
 from .parallel import parallel_imap, tqdm_parallel_imap, get_pool
 from .plotly import plot_tensorboard_log
 from .serialization import deserialize, serialize
+
+try:
+    from .image import (
+        has_image_extension,
+        imread,
+        imwrite,
+        imsave,
+        mask_to_overlay_image,
+        mimread,
+        mimwrite_with_meta,
+        tensor_from_rgb_image,
+        tensor_to_ndimage,
+    )
+except (ModuleNotFoundError, ImportError) as ex:
+    if settings.cv_required:
+        logger.exception(
+            "some of catalyst-cv dependencies not available,"
+            " to install dependencies, run `pip install catalyst[cv]`."
+        )
+        raise ex
 
 try:
     import transformers  # noqa: F401

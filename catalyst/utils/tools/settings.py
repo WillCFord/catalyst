@@ -85,12 +85,12 @@ class Settings(FrozenClass):
 
         # [catalyst-ml]
         self.nmslib_required: bool = self._optional_value(
-            segmentation_models_required, default=ml_required
+            nmslib_required, default=ml_required
         )
 
         # [catalyst-nlp]
         self.transformers_required: bool = self._optional_value(
-            segmentation_models_required, default=nlp_required
+            transformers_required, default=nlp_required
         )
 
     @staticmethod
@@ -104,7 +104,6 @@ class Settings(FrozenClass):
     @staticmethod
     def parse() -> "Settings":
         kwargrs = MergedConfigParser(ConfigFileFinder("catalyst")).parse()
-        print(f"+++++{kwargrs}")
         return Settings(**kwargrs)
 
 

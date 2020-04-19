@@ -9,7 +9,7 @@ from .gan import (
     WassersteinDistanceCallback,
     WeightClampingOptimizerCallback,
 )
-from .inference import InferCallback, InferMaskCallback
+from .inference import InferCallback
 from .meter import MeterMetricsCallback
 from .metrics import (
     AccuracyCallback,

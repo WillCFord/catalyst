@@ -10,9 +10,7 @@ from .dataset import (
     PathsDataset,
 )
 from .reader import (
-    ImageReader,
     LambdaReader,
-    MaskReader,
     ReaderCompose,
     ReaderSpec,
     ScalarReader,
