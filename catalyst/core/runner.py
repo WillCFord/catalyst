@@ -422,7 +422,8 @@ class _Runner(ABC):
         else:
             # @TODO: add check for non distributed run for inference
             assert not any(
-                x.startswith(LOADER_TRAIN_PREFIX) for x in loaders.keys()
+                x.startswith(settings.loader_train_prefix)
+                for x in loaders.keys()
             ), "for inference no train loader should be passed"
 
         for loader_name, loader in loaders.items():

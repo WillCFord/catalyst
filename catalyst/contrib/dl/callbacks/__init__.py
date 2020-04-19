@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 try:
     import alchemy
     from .alchemy import AlchemyLogger
-except (ModuleNotFoundError, ImportError) as ex:
+except ImportError as ex:
     if settings.alchemy_logger_required:
         logger.exception(
             "alchemy not available, to install alchemy,"
@@ -26,7 +26,7 @@ except (ModuleNotFoundError, ImportError) as ex:
 try:
     import neptune
     from .neptune import NeptuneLogger
-except (ModuleNotFoundError, ImportError) as ex:
+except ImportError as ex:
     if settings.neptune_logger_required:
         logger.exception(
             "neptune not available, to install neptune,"
@@ -37,7 +37,7 @@ except (ModuleNotFoundError, ImportError) as ex:
 try:
     import wandb
     from .wandb import WandbLogger
-except (ModuleNotFoundError, ImportError) as ex:
+except ImportError as ex:
     if settings.wandb_logger_required:
         logger.exception(
             "wandb not available, to install wandb,"
@@ -49,7 +49,7 @@ try:
     import imageio
     import skimage.color
     from .cv.inference import InferMaskCallback
-except (ModuleNotFoundError, ImportError) as ex:
+except ImportError as ex:
     if settings.cv_required:
         logger.exception(
             "some of catalyst-cv dependencies not available,"

@@ -22,7 +22,7 @@ def _transforms_loader(r: Registry):
         from catalyst.contrib.data.cv import transforms as t
 
         r.add_from_module(t, prefix=["catalyst.", "C."])
-    except (ModuleNotFoundError, ImportError) as ex:
+    except ImportError as ex:
         if settings.albumentations_required:
             logger.exception(
                 "albumentations not available, to install albumentations, "
@@ -95,7 +95,7 @@ def _model_loader(r: Registry):
         import segmentation_models_pytorch as smp
 
         r.add_from_module(smp, prefix="smp.")
-    except (ModuleNotFoundError, ImportError) as ex:
+    except ImportError as ex:
         if settings.segmentation_models_required:
             logger.exception(
                 "segmentation-models not available,"

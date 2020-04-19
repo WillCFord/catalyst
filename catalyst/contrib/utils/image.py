@@ -26,7 +26,7 @@ if settings.use_libjpeg_turbo:
         with tempfile.NamedTemporaryFile(suffix=".jpg") as fp:
             imageio.imwrite(fp.name, img)
             img = jpeg.JPEG(fp.name).decode()
-    except (ModuleNotFoundError, ImportError):
+    except ImportError:
         logger.warning(
             "jpeg4py not available. "
             "To install jpeg4py, run `pip install jpeg4py`."

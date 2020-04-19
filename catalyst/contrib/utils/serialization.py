@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 try:
     import pyarrow
-except (ModuleNotFoundError, ImportError) as ex:
+except ImportError as ex:
     if settings.use_pyarrow:
         logger.exception(
             "pyarrow not available, switching to pickle."

@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 try:
     import lz4.frame
-except (ModuleNotFoundError, ImportError) as ex:
+except ImportError as ex:
     if settings.use_lz4:
         logger.exception(
             "lz4 not available, disabling compression,"

@@ -94,7 +94,7 @@ try:
     COMMANDS["process-images"] = process_images
     COMMANDS["image2embedding"] = image2embedding
     COMMANDS["project-embeddings"] = project_embeddings
-except (ModuleNotFoundError, ImportError) as ex:
+except ImportError as ex:
     if settings.cv_required:
         logger.exception(
             "some of catalyst-cv dependencies not available,"
@@ -107,7 +107,7 @@ try:
     from catalyst.data.scripts import text2embedding
 
     COMMANDS["text2embedding"] = text2embedding
-except (ModuleNotFoundError, ImportError) as ex:
+except ImportError as ex:
     if settings.nlp_required:
         logger.exception(
             "some of catalyst-nlp dependencies not available,"

@@ -15,7 +15,7 @@ try:
 
     COMMANDS["check-index-model"] = check_index_model
     COMMANDS["create-index-model"] = create_index_model
-except (ModuleNotFoundError, ImportError) as ex:
+except ImportError as ex:
     if settings.ml_required:
         logger.exception(
             "some of catalyst-ml dependencies not available,"
